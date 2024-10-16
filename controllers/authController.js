@@ -4,8 +4,6 @@ const User = require("../models/userModel");
 const asyncMiddleware = require("../middlewares/asyncMiddleware");
 const AppError = require("../utils/AppError");
 const sendTokenResponse = require("../utils/sendTokenResponse");
-const sendEmail = require("../utils/email");
-const sendVerificationCode = require("../utils/sendVerificationCode");
 
 exports.signup = asyncMiddleware(async (req, res, next) => {
   // Validate Input
@@ -23,42 +21,12 @@ exports.signup = asyncMiddleware(async (req, res, next) => {
   // Create unverified user
   const newUser = await User.create(userObj);
 
-  try {
-    await sendVerificationCode(newUser);
-  } catch (error) {
-    return next(error);
-  }
-
   // Remove the verification code and expiration date before sending the response
   newUser.verificationCode = undefined;
   newUser.verificationCodeExpires = undefined;
+
   // Generate Token
   sendTokenResponse(newUser, 201, res);
-});
-
-// Verify user based on verification code
-exports.verification = asyncMiddleware(async (req, res, next) => {
-  const { email, verificationCode } = req.body;
-
-  // Find the user by email end ensure the code has not expired
-  const user = await User.findOne({
-    email,
-    verificationCodeExpires: { $gt: Date.now() },
-  }).select("+verificationCode");
-
-  // check user existence and Compare provided verification to the user's hashed one
-  if (!user || !(await user.matchHashedField(verificationCode, user.verificationCode))) {
-    return next(new AppError("Invalid or expired verification code", 401));
-  }
-
-  // Mark user as verified and remove the code fields
-  user.isVerified = true;
-  user.verificationCode = undefined;
-  user.verificationCodeExpires = undefined;
-  await user.save({ validateBeforeSave: false });
-
-  // Generate Token
-  sendTokenResponse(user, 200, res);
 });
 
 exports.login = asyncMiddleware(async (req, res, next) => {
@@ -84,19 +52,6 @@ exports.login = asyncMiddleware(async (req, res, next) => {
   // check user existence and Compare provided pass to the user's hashed one
   if (!user || !(await user.matchHashedField(password, user.password))) {
     return next(new AppError("Invalid credentials", 401));
-  }
-
-  //  If user is not  verified trigger the verification process
-  if (!user.isVerified) {
-    try {
-      await sendVerificationCode(user);
-      return res.status(200).json({
-        status: "success",
-        message: "Verification code sent. Please verify your account to log in.",
-      });
-    } catch (error) {
-      return next(error); // Handle email sending error
-    }
   }
 
   // Generate Token

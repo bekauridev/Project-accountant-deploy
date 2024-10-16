@@ -11,7 +11,10 @@ const sendTokenResponse = (user, statusCode, res) => {
 
   res.cookie("jwt", token, cookieOptions);
 
+  user.role = undefined;
   user.password = undefined;
+  user.active = undefined;
+  user.__v = undefined;
 
   res.status(statusCode).json({
     status: "success",
