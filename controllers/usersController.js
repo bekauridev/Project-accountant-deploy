@@ -23,7 +23,7 @@ exports.declinePasswordUpdate = asyncMiddleware(async (req, res, next) => {
 // @route  DELETE /api/v1/users/updateMe
 // @access Private
 exports.deleteMe = asyncMiddleware(async (req, res, next) => {
-  await User.findByIdAndUpdate(req.user.id, { active: false });
+  await User.findByIdAndDelete(req.user.id);
 
   res.status(204).json({
     status: "success",

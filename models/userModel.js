@@ -76,13 +76,6 @@ const userSchema = new mongoose.Schema({
   passwordResetExpires: Date,
 });
 
-// Black non active users
-userSchema.pre(/^find/, function (next) {
-  // This points to current query
-  this.find({ active: { $ne: false } });
-  next();
-});
-
 // Hash verification code before saving
 userSchema.pre("save", async function (next) {
   // Only hash the verification code if it exists and is being modified

@@ -1,13 +1,17 @@
 const express = require("express");
+const organizationController = require("../controllers/organizationController");
 
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 
-router.route("/").get(usersController.indexUser).post(usersController.storeUser);
+router
+  .route("/")
+  .get(organizationController.indexOrganization)
+  .post(organizationController.storeOrganization);
 
 router
   .route("/:id")
-  .get(usersController.showUser) // Retrieve a specific user by ID
-  .patch(usersController.declinePasswordUpdate, usersController.updateUser) // Update a user
-  .delete(usersController.destroyUser); // Delete a user
+  .get(organizationController.showOrganization) // Retrieve a specific doc by ID
+  .patch(organizationController.updateOrganization) // Update a doc
+  .delete(organizationController.destroyOrganization); // Delete a doc
 
 module.exports = router;
