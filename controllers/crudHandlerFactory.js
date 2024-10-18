@@ -8,7 +8,8 @@ exports.indexDoc = (Model) =>
     const features = new ApiFeatures(Model.find(), req.query)
       .filter()
       .sort()
-      .limitFields();
+      .limitFields()
+      .paginate();
 
     const doc = await features.query;
     res.status(200).json({

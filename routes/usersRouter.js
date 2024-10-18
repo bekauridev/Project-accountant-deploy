@@ -4,22 +4,29 @@ const authController = require("../controllers/authController");
 
 const router = express.Router();
 
-router.use(authController.protect, authController.checkRole("admin", "user"));
+router.use(authController.protect);
 
-router.patch("/updateMe", usersController.updateMe);
+router.patch(
+  "/updateMe",
+  usersController.declinePasswordUpdate,
+  usersController.updateMe
+);
+
 router.delete("/deleteMe", usersController.deleteMe);
 
+// Admin-only routes
 router.use(authController.checkRole("admin"));
 
-// Admin-only routes
+// Admin routes for user management
 router
   .route("/")
-  .get(authController.protect, usersController.index)
-  .post(usersController.storeUser);
+  .get(usersController.indexUser) // Retrieve all users
+  .post(usersController.storeUser); // Create a new user
+
 router
   .route("/:id")
-  .get(usersController.showUser)
-  .patch(usersController.updateUser)
-  .delete(usersController.destroyUser);
+  .get(usersController.showUser) // Retrieve a specific user by ID
+  .patch(usersController.declinePasswordUpdate, usersController.updateUser) // Update a user
+  .delete(usersController.destroyUser); // Delete a user
 
 module.exports = router;

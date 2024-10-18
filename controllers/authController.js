@@ -4,8 +4,15 @@ const User = require("../models/userModel");
 const asyncMiddleware = require("../middlewares/asyncMiddleware");
 const AppError = require("../utils/AppError");
 const sendTokenResponse = require("../utils/sendTokenResponse");
+const sendEmail = require("../services/emailService");
+const hashToken = require("../utils/hashToken");
 
+// @desc   User registration
+// @route  POST /api/v1/auth/signup
+// @access Public
 exports.signup = asyncMiddleware(async (req, res, next) => {
+  // !! TO DO - თუ მომხმარებელმა თავისი თავი წაშალა და შემდგომ ისევ ცადა დარეგისტრირება მაგ თემთხვევას მიხედეე თუ ჯონასმა არ გასწავლა :D
+
   // Validate Input
   let userObj = {
     name: req.body.name,
@@ -29,6 +36,9 @@ exports.signup = asyncMiddleware(async (req, res, next) => {
   sendTokenResponse(newUser, 201, res);
 });
 
+// @desc   User login
+// @route  POST /api/v1/auth/login
+// @access Public
 exports.login = asyncMiddleware(async (req, res, next) => {
   // Accept user credentials
   const { email, phone, password } = req.body;
@@ -58,6 +68,8 @@ exports.login = asyncMiddleware(async (req, res, next) => {
   sendTokenResponse(user, 201, res);
 });
 
+// @desc   Protect routes
+// @route  Protect middleware
 exports.protect = asyncMiddleware(async (req, res, next) => {
   // Check if token exists
   let token;
@@ -97,6 +109,8 @@ exports.protect = asyncMiddleware(async (req, res, next) => {
   next();
 });
 
+// @desc   Check user role
+// @route  Middleware for role checking
 exports.checkRole = (...roles) => {
   return (req, res, next) => {
     if (!roles.includes(req.user.role)) {
@@ -106,34 +120,107 @@ exports.checkRole = (...roles) => {
   };
 };
 
+// @desc   Send password reset email
+// @route  POST /api/v1/auth/forgotPassword
+// @access Public
 exports.forgotPassword = asyncMiddleware(async (req, res, next) => {
-  // Receive Email: Accept the user’s email from the request body.
-  const user = await User.findOne(email);
-  // Find User: Look for the user in the database using the provided email.
-  // Generate Reset Token: If the user exists, create a password reset token and save it to the user record.
-  // Create Reset URL: Construct a URL for resetting the password that includes the token.
-  // Send Email: Send an email containing the reset URL to the user’s email address.
-  // Send Response: Return a success response indicating that the email has been sent.
+  const user = await User.findOne({ email: req.body.email });
+
+  if (!user) return next(new AppError("There is no user with email adress", 404));
+  // Generate Reset Token
+  const resetToken = user.getPasswordResetToken();
+  // Used for avoid schema validations
+  await user.save({ validateBeforeSave: false });
+  //Reset URL
+  const resetUrl = `${req.protocol}://${req.get(
+    "host"
+  )}/api/v1/auth/resetPassword/${resetToken}`;
+
+  const message = `Forgot your password? Submit a PATCH request with your new password and passwordConfirm to: ${resetUrl}. valid(10min) \nIf you didn't forget your password, please ignore this email!`;
+
+  // Send Email
+  try {
+    await sendEmail({
+      email: user.email,
+      subject: "Your password reset token",
+      message,
+    });
+  } catch (err) {
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+    await user.save({ validateBeforeSave: false });
+
+    return next(
+      new AppError("There was an error sending the email. Try again later!", 500)
+    );
+  }
+  // Send Response
+  res.status(200).json({
+    status: "success",
+    message: "Token send to email!",
+  });
 });
 
-// 6. Reset Password
-// Steps:
-// Receive Token: Accept the reset token from the request parameters.
-// Hash Token: Hash the provided token to match it against the stored token.
-// Find User: Retrieve the user using the hashed token and check if it has not expired.
-// Validate: If the token is invalid or expired, return an error.
-// Update Password: If valid, update the user’s password with the new password from the request body.
-// Clear Token Data: Clear the reset token and expiration fields in the user record.
-// Generate Token: Call sendTokenResponse to generate a new JWT token.
-// Send Response: Return a success response with the new token.
+// @desc   Reset user password
+// @route  PATCH /api/v1/auth/resetPassword/:token
+// @access Public
+exports.resetPassword = asyncMiddleware(async (req, res, next) => {
+  // Hash Token
+  const hashedToken = hashToken(req.params.token);
 
-// 7. Update Password
-// Steps:
-// Receive Password Data: Accept the current password, new password, and password confirmation from the request body.
-// Validate Input: Check that both new password and confirmation are provided.
-// Find User: Retrieve the user from the database, including their current password.
-// Verify Current Password: Check if the provided current password matches the stored password.
-// Update Password: If valid, update the user's password with the new password.
-// Save Changes: Save the updated user record in the database.
-// Generate Token: Call sendTokenResponse to generate a new JWT token.
-// Send Response: Return a success response with the new token.
+  // Find user based on token and date
+  const user = await User.findOne({
+    passwordResetToken: hashedToken,
+    passwordResetExpires: { $gt: Date.now() },
+  });
+
+  if (!user) return next(new AppError("Token is invalid or expired", 400));
+
+  // Update Password
+  user.password = req.body.password;
+  user.passwordConfirm = req.body.passwordConfirm;
+
+  // Clear Token related Data
+  user.passwordResetToken = undefined;
+  user.passwordResetExpires = undefined;
+
+  // Save the updated user
+  await user.save();
+
+  // Response
+  res.status(200).json({
+    status: "success",
+    message:
+      "Your password has been successfully reset. Please log in with your new password.",
+  });
+});
+
+// @desc   Update user password
+// @route  PATCH /api/v1/auth/updatePassword/:id
+// @access Private
+exports.updatePassword = asyncMiddleware(async (req, res, next) => {
+  const { currentPassword, password, passwordConfirm } = req.body;
+
+  // Validate Input
+  if (!password || !passwordConfirm) {
+    return next(
+      new AppError("Please provide both password and password confirmation", 400)
+    );
+  }
+  // Find User
+  const user = await User.findById(req.params.id).select("+password");
+
+  // Verify Current Password
+  if (!(await user.matchHashedField(currentPassword, user.password))) {
+    return next(new AppError("Current password is not valid", 401));
+  }
+
+  // Update Password
+  user.password = password;
+  user.passwordConfirm = passwordConfirm;
+  // Save Changes
+  await user.save();
+
+  // Send Response
+  sendTokenResponse(user, 200, res);
+});

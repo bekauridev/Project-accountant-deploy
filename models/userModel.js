@@ -5,6 +5,7 @@ const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const zxcvbn = require("zxcvbn");
 const AppError = require("../utils/AppError");
+const hashToken = require("../utils/hashToken");
 const userSchema = new mongoose.Schema({
   role: {
     type: String,
@@ -61,7 +62,6 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
-  passwordChangedAt: Date,
 
   verificationCode: {
     type: String,
@@ -70,6 +70,10 @@ const userSchema = new mongoose.Schema({
   verificationCodeExpires: {
     type: Date,
   },
+
+  passwordChangedAt: Date,
+  passwordResetToken: String,
+  passwordResetExpires: Date,
 });
 
 // Black non active users
@@ -117,6 +121,14 @@ userSchema.pre("save", async function (next) {
   next();
 });
 
+// Update the passwordChangedAt field before saving the user document (crucial for changedPasswordAfter with is used in (protect))
+userSchema.pre("save", function (next) {
+  if (!this.isModified("password") || this.isNew) return next();
+
+  this.passwordChangedAt = Date.now() - 1000;
+  next();
+});
+
 // Sing jwt token
 userSchema.methods.getSignedJwt = function () {
   return jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
@@ -136,6 +148,15 @@ userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
   }
 
   return false;
+};
+// Password reset token
+userSchema.methods.getPasswordResetToken = function () {
+  const resetToken = crypto.randomBytes(32).toString("hex");
+  this.passwordResetToken = hashToken(resetToken);
+  console.log({ resetToken }, this.passwordResetToken);
+  this.passwordResetExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+
+  return resetToken;
 };
 
 const User = mongoose.model("User", userSchema);

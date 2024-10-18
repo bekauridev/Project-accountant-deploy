@@ -3,12 +3,12 @@ const User = require("../models/userModel");
 const AppError = require("../utils/AppError");
 const sendEmail = require("../services/emailService.js");
 
+// Helper function to send the verification code
 sendVerificationCode = async (user) => {
   const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
   user.verificationCode = verificationCode;
   user.verificationCodeExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
 
-  // Used for avoid schema validations
   await user.save({ validateBeforeSave: false });
 
   const message = `Your verification code is: ${verificationCode}. It is valid for 10 minutes.`;
@@ -20,7 +20,9 @@ sendVerificationCode = async (user) => {
   });
 };
 
-// Send Verification Code
+// @desc   Send verification code to the user
+// @route  POST /api/v1/auth/send-verification-code
+// @access Private
 exports.sendVerificationCodeHandler = asyncMiddleware(async (req, res, next) => {
   const user = req.user;
 
@@ -40,11 +42,14 @@ exports.sendVerificationCodeHandler = asyncMiddleware(async (req, res, next) => 
       message: "Verification code sent.",
     });
   } catch (error) {
-    next(new AppError("Error sending verification code.", 500));
+    // next(new AppError("Error sending verification code.", 500));
+    next(new AppError(error, 500));
   }
 });
 
-// Verify user based on verification code
+// @desc   Verify user based on verification code
+// @route  POST /api/v1/auth/verification
+// @access Private
 exports.verification = asyncMiddleware(async (req, res, next) => {
   const { verificationCode } = req.body;
   const user = req.user;

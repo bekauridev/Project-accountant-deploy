@@ -4,23 +4,9 @@ const AppError = require("../utils/AppError");
 const crudHandlerFactory = require("./crudHandlerFactory");
 const filterFieldsObj = require("../utils/filterFieldsObj");
 
-// @desc Delete Currently logged in user's details
-// @route PUT /api/v1/users/updateMe
-// @access Private
-exports.deleteMe = asyncMiddleware(async (req, res, next) => {
-  await User.findByIdAndUpdate(req.user.id, { active: false });
-
-  res.status(204).json({
-    status: "success",
-    data: null,
-  });
-});
-
-// @desc Update Currently logged in user's details
-// @route PUT /api/v1/users/updateMe
-// @access Private
-exports.updateMe = asyncMiddleware(async (req, res, next) => {
-  // Avoid password update from this function
+// @desc   Reject password update
+// @route  Protect middleware
+exports.declinePasswordUpdate = asyncMiddleware(async (req, res, next) => {
   if (req.body.password || req.body.passwordConfirm) {
     return next(
       new AppError(
@@ -31,7 +17,24 @@ exports.updateMe = asyncMiddleware(async (req, res, next) => {
       )
     );
   }
+});
 
+// @desc   Delete Currently logged in user's details
+// @route  DELETE /api/v1/users/updateMe
+// @access Private
+exports.deleteMe = asyncMiddleware(async (req, res, next) => {
+  await User.findByIdAndUpdate(req.user.id, { active: false });
+
+  res.status(204).json({
+    status: "success",
+    data: null,
+  });
+});
+
+// @desc   Update Currently logged in user's details (excluding password)
+// @route  PATCH /api/v1/users/updateMe
+// @access Private
+exports.updateMe = asyncMiddleware(async (req, res, next) => {
   // Accept only allowed fields
   const fields = filterFieldsObj(req.body, "name", "email");
   // Check if the provided email is the same as the current email
@@ -57,27 +60,29 @@ exports.updateMe = asyncMiddleware(async (req, res, next) => {
 // ///////////////////////////////////
 // CRUD Using crudHandlerFactory
 
-// @desc Show a users
-// @route PUT /api/v1/users/
-// @access Private (admin)
-exports.index = crudHandlerFactory.indexDoc(User);
+// @desc   Retrieve a list of users
+// @route  GET /api/v1/users/
+// @access Admin access only
+exports.indexUser = crudHandlerFactory.indexDoc(User);
 
-// @desc Show single user
-// @route PUT /api/v1/users/:id
-// @access Private (admin)
+// @desc   Retrieve a single user by ID
+// @route  GET /api/v1/users/:id
+// @access Admin access only
 exports.showUser = crudHandlerFactory.showDoc(User);
 
-// @desc Create a user
-// @route PUT /api/v1/users/:id
-// @access Private (admin)
+// @desc   Update a user's details (excluding password)
+// @route  POST /api/v1/users/:id
+// @access Admin access only
 exports.storeUser = crudHandlerFactory.storeDoc(User);
 
-// @desc Update a user (Do Not update password)
-// @route PUT /api/v1/users/:id
-// @access Private (admin)
+// @desc   Update a user (Do Not update password)
+// @route  PATCH /api/v1/users/:id
+// @access Admin access only
+
 exports.updateUser = crudHandlerFactory.updateDoc(User);
 
-// @desc Delete a user
-// @route PUT /api/v1/users/:id
-// @access Private (admin)
+// @desc   Delete a user
+// @route  DELETE /api/v1/users/:id
+// @access Admin access only
+
 exports.destroyUser = crudHandlerFactory.destroyDoc(User);

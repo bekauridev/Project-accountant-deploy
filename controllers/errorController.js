@@ -1,6 +1,9 @@
 const colors = require("colors");
 const AppError = require("../utils/AppError");
 
+// ////////////////////////
+// GLOBAL error handler
+
 const handleCastErrorDB = (err) => {
   const message = `Invalid ${err.path}: ${err.value}.`;
   return new AppError(message, 404);
