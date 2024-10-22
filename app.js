@@ -1,5 +1,6 @@
 const express = require("express");
 const morgan = require("morgan");
+// const cors = require("cors");
 
 const globalErrorHandler = require("./controllers/errorController");
 const AppError = require("./utils/AppError");
@@ -10,7 +11,7 @@ const authRouter = require("./routes/authRouter");
 
 // initialize app
 const app = express();
-
+// app.use(cors());
 // Development logging
 if (process.env.NODE_ENV === "development") app.use(morgan("dev"));
 

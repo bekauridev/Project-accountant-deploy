@@ -78,11 +78,9 @@ exports.storeUser = crudHandlerFactory.storeDoc(User);
 // @desc   Update a user (Do Not update password)
 // @route  PATCH /api/v1/users/:id
 // @access Admin access only
-
 exports.updateUser = crudHandlerFactory.updateDoc(User);
 
 // @desc   Delete a user
 // @route  DELETE /api/v1/users/:id
 // @access Admin access only
-
 exports.destroyUser = crudHandlerFactory.destroyDoc(User);

@@ -6,74 +6,94 @@ const crypto = require("crypto");
 const zxcvbn = require("zxcvbn");
 const AppError = require("../utils/AppError");
 const hashToken = require("../utils/hashToken");
-const userSchema = new mongoose.Schema({
-  role: {
-    type: String,
-    enum: ["user", "admin"],
-    default: "user",
-  },
-  name: {
-    type: String,
-    trim: true,
-    required: [true, "A user must have name!"],
-  },
-  surname: {
-    type: String,
-    trim: true,
-    required: [true, "A user must have surname!"],
-  },
-
-  email: {
-    type: String,
-    required: [true, "A user must have email!"],
-    unique: true,
-    lowercase: true,
-    validate: [validator.isEmail, "Please provide a valid email"],
-  },
-
-  phone: {
-    type: String,
-    unique: true,
-    sparse: true, // Ensure Mongoose skips uniqueness check on null or undefined
-    validate: [validator.isMobilePhone, "Please provide a valid phone number"],
-  },
-  password: {
-    type: String,
-    minlength: 8,
-    select: false,
-    required: [true, "A user must have password!"],
-  },
-  passwordConfirm: {
-    type: String,
-    required: [true, "Please add a password confirmation"],
-    validate: {
-      validator: function (el) {
-        return el === this.password;
-      },
-      message: "Passwords do not match",
+const userSchema = new mongoose.Schema(
+  {
+    role: {
+      type: String,
+      enum: ["user", "admin"],
+      default: "user",
     },
-  },
-  active: {
-    type: Boolean,
-    default: true,
-    select: false,
-  },
-  isVerified: {
-    type: Boolean,
-    default: false,
-  },
+    name: {
+      type: String,
+      trim: true,
+      required: [true, "A user must have name!"],
+    },
+    surname: {
+      type: String,
+      trim: true,
+      required: [true, "A user must have surname!"],
+    },
 
-  verificationCode: {
-    type: String,
-    select: false,
-  },
-  verificationCodeExpires: {
-    type: Date,
-  },
+    email: {
+      type: String,
+      required: [true, "A user must have email!"],
+      unique: true,
+      lowercase: true,
+      validate: [validator.isEmail, "Please provide a valid email"],
+    },
 
-  passwordChangedAt: Date,
-  passwordResetToken: String,
-  passwordResetExpires: Date,
+    phone: {
+      type: String,
+      unique: true,
+      sparse: true, // Ensure Mongoose skips uniqueness check on null or undefined
+      validate: [validator.isMobilePhone, "Please provide a valid phone number"],
+    },
+    password: {
+      type: String,
+      minlength: 8,
+      select: false,
+      required: [true, "A user must have password!"],
+    },
+    passwordConfirm: {
+      type: String,
+      required: [true, "Please add a password confirmation"],
+      validate: {
+        validator: function (el) {
+          return el === this.password;
+        },
+        message: "Passwords do not match",
+      },
+    },
+    active: {
+      type: Boolean,
+      default: true,
+      select: false,
+    },
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
+
+    verificationCode: {
+      type: String,
+      select: false,
+    },
+    verificationCodeExpires: {
+      type: Date,
+    },
+
+    passwordChangedAt: Date,
+    passwordResetToken: String,
+    passwordResetExpires: Date,
+  },
+  { toJSON: { virtuals: true }, toObject: { virtuals: true } }
+);
+
+// Virtual organizations populate
+userSchema.virtual("organizations", {
+  ref: "Organization",
+  foreignField: "user",
+  localField: "_id",
+});
+
+// Cascade delete courses when a bootcamp is deleted
+userSchema.pre("findOneAndDelete", async function (next) {
+  const user = await this.model.findOne(this.getQuery());
+  if (user) {
+    console.log(`Organizations being Deleted at id: ${user._id}`);
+    await user.model("Organization").deleteMany({ user: user._id });
+  }
+  next();
 });
 
 // Hash verification code before saving

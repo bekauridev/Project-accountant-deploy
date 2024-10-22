@@ -105,6 +105,11 @@ exports.protect = asyncMiddleware(async (req, res, next) => {
     return next(new AppError("Your password has been changed. Please log in again", 401));
   }
 
+  //!!  (TEMP CLOSED) Check if user is verified
+  // if (!user.isVerified) {
+  //   return next(new AppError("Forbidden: User is not verified.", 403));
+  // }
+
   req.user = user;
   next();
 });

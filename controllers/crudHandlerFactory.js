@@ -2,16 +2,27 @@ const asyncMiddleware = require("../middlewares/asyncMiddleware");
 const ApiFeatures = require("../utils/apiFeatures");
 const AppError = require("../utils/AppError");
 
-// Display All document
-exports.indexDoc = (Model) =>
+// Common Parameters Description
+//  @param   {Model} Model - The Mongoose model representing the collection.
+//  @param   {Function} [applyFilter = (req) => ({})] - Optional filter function. Defaults to an empty filter.
+// It adds an additional filtering layer, useful for scenarios like filtering documents based on relationships (e.g., filtering by the logged-in user or related entities).
+
+//  @desc   Retrieve a list of documents with optional filtering
+//  The function takes in the request `req` and returns a query filter object.
+exports.indexDoc = (Model, applyFilter = (req) => ({})) =>
   asyncMiddleware(async (req, res, next) => {
-    const features = new ApiFeatures(Model.find(), req.query)
+    // Apply the filter based on the logged-in user or any other condition
+    const filter = applyFilter(req); // Call the custom filter function
+
+    // Apply the filter before passing to ApiFeatures
+    const features = new ApiFeatures(Model.find(filter), req.query)
       .filter()
       .sort()
       .limitFields()
       .paginate();
 
     const doc = await features.query;
+
     res.status(200).json({
       status: "success",
       results: doc.length,
@@ -21,13 +32,29 @@ exports.indexDoc = (Model) =>
     });
   });
 
-// Display single document
-exports.showDoc = (Model) =>
+// @desc  This function retrieves a single document from the database by its ID, with support for optional population of related fields using the query string parameter `populate`.
+exports.showDoc = (Model, applyFilter = (req) => ({})) =>
   asyncMiddleware(async (req, res, next) => {
-    const doc = await Model.findById(req.params.id);
+    // Apply the filter based on the request (e.g., logged-in user)
+    const filter = applyFilter(req);
 
-    if (!doc)
+    // Find the document by ID and apply any additional filters
+    let query = Model.findOne({ _id: req.params.id, ...filter });
+
+    // Check if the populate field is provided and apply it for multiple fields
+    if (req.query.populate) {
+      const populateFields = req.query.populate.split(","); // Split by comma
+      populateFields.forEach((field) => {
+        query = query.populate(field.trim());
+      });
+    }
+
+    // Execute the query
+    const doc = await query;
+
+    if (!doc) {
       return next(new AppError(`No document found with id of ${req.params.id}`, 404));
+    }
 
     res.status(200).json({
       status: "success",
@@ -36,25 +63,35 @@ exports.showDoc = (Model) =>
       },
     });
   });
-
-// Create single document
+// @desc  Create a new document
 exports.storeDoc = (Model) =>
   asyncMiddleware(async (req, res, next) => {
     const doc = await Model.create(req.body);
 
-    res.status(200).json({
+    res.status(201).json({
       status: "success",
-      doc,
+      data: {
+        doc,
+      },
     });
   });
 
-// Update single document
-exports.updateDoc = (Model) =>
+//  @desc Update a single document by ID
+exports.updateDoc = (Model, applyFilter = (req) => ({})) =>
   asyncMiddleware(async (req, res, next) => {
-    const doc = await Model.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    });
+    // Apply the filter based on the request (e.g., logged-in user)
+    const filter = applyFilter(req);
+
+    // Find the document by ID and apply the filter, then update it
+    const doc = await Model.findOneAndUpdate(
+      // Apply the filter and match the document by ID
+      { _id: req.params.id, ...filter },
+      req.body,
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
 
     if (!doc) {
       return next(new AppError(`No document found with id of ${req.params.id}`, 404));
@@ -68,13 +105,19 @@ exports.updateDoc = (Model) =>
     });
   });
 
-// Delete single document
-exports.destroyDoc = (Model) =>
+//  @desc   Delete a single document by ID
+exports.destroyDoc = (Model, applyFilter = (req) => ({})) =>
   asyncMiddleware(async (req, res, next) => {
-    const doc = await Model.findByIdAndDelete(req.params.id, req.body);
+    // Apply the filter based on the request (e.g., logged-in user)
+    const filter = applyFilter(req);
+
+    // Find the document by ID and apply the filter, then delete it
+    const doc = await Model.findOneAndDelete({ _id: req.params.id, ...filter });
+
     if (!doc) {
       return next(new AppError(`No document found with id of ${req.params.id}`, 404));
     }
+
     res.status(204).json({
       status: "success",
       data: null,

@@ -6,7 +6,7 @@ const router = express.Router();
 
 router.use(authController.protect);
 
-router.use("/userId/organization", organizationRouter);
+// router.use("/userId/organization", organizationRouter);
 
 router.patch(
   "/updateMe",
@@ -15,10 +15,10 @@ router.patch(
 );
 
 router.delete("/deleteMe", usersController.deleteMe);
+router.get("/:id", usersController.showUser); // Retrieve a specific user by ID
 
 // Admin-only routes
 router.use(authController.checkRole("admin"));
-
 // Admin routes for user management
 router
   .route("/")
@@ -27,7 +27,6 @@ router
 
 router
   .route("/:id")
-  .get(usersController.showUser) // Retrieve a specific user by ID
   .patch(usersController.declinePasswordUpdate, usersController.updateUser) // Update a user
   .delete(usersController.destroyUser); // Delete a user
 

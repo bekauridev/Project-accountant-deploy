@@ -1,12 +1,17 @@
 const express = require("express");
 const organizationController = require("../controllers/organizationController");
+const authController = require("../controllers/authController");
+const websiteRouter = require("./websiteRouter");
+const router = express.Router();
 
-const router = express.Router({ mergeParams: true });
+// Redirecting to Website Router
+router.use("/:organizationId/websites", websiteRouter);
 
+router.use(authController.protect);
 router
   .route("/")
   .get(organizationController.indexOrganization)
-  .post(organizationController.storeOrganization);
+  .post(organizationController.setUserId, organizationController.storeOrganization);
 
 router
   .route("/:id")
