@@ -7,6 +7,7 @@ const AppError = require("./utils/AppError");
 
 const usersRouter = require("./routes/usersRouter");
 const organizationRouter = require("./routes/organizationRouter");
+const taskRouter = require("./routes/taskRouter");
 const authRouter = require("./routes/authRouter");
 
 // initialize app
@@ -39,7 +40,8 @@ app.use(express.json({ limit: "100kb" }));
 // Routes
 app.use("/api/v1/users", usersRouter);
 app.use("/api/v1/auth", authRouter);
-app.use("/api/v1/organization", organizationRouter);
+app.use("/api/v1/organizations", organizationRouter);
+app.use("/api/v1/tasks", taskRouter);
 
 app.all("*", (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));

@@ -4,10 +4,10 @@ const Organization = require("../models/organizationModel");
 const AppError = require("../utils/AppError");
 
 // Order to see all websites you should go to this Route
-// @route  GET /api/v1/organization/
+// @route  GET /api/v1/organizations/
 
 // @desc   Create a new website
-// @route  GET /api/v1/organization/organizationId/websites
+// @route  GET /api/v1/organizations/organizationId/websites
 // @access Private
 exports.createWebsite = asyncMiddleware(async (req, res, next) => {
   const organizationId = req.params.organizationId;
@@ -39,7 +39,7 @@ exports.createWebsite = asyncMiddleware(async (req, res, next) => {
 });
 
 // @desc   Update an existing website
-// @route  PATCH /api/v1/organization/organizationId/websites/websiteId
+// @route  PATCH /api/v1/organizations/organizationId/websites/websiteId
 // @access Private
 exports.updateWebsite = asyncMiddleware(async (req, res, next) => {
   const organizationId = req.params.organizationId;
@@ -73,8 +73,8 @@ exports.updateWebsite = asyncMiddleware(async (req, res, next) => {
 });
 
 // @desc   Delete multiple or single website
-// @route  DELETE /api/v1/organization/organizationId/websites
-// @route  DELETE /api/v1/organization/organizationId/websites/websiteId
+// @route  DELETE /api/v1/organizatiosn/organizationId/websites
+// @route  DELETE /api/v1/organizations/organizationId/websites/websiteId
 exports.deleteWebsite = asyncMiddleware(async (req, res, next) => {
   const organizationId = req.params.organizationId;
   const websiteId = req.params.websiteId;

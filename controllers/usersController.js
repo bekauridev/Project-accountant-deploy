@@ -70,7 +70,7 @@ exports.indexUser = crudHandlerFactory.indexDoc(User);
 // @access Admin access only
 exports.showUser = crudHandlerFactory.showDoc(User);
 
-// @desc   Update a user's details (excluding password)
+// @desc   Create a user  (excluding password)
 // @route  POST /api/v1/users/:id
 // @access Admin access only
 exports.storeUser = crudHandlerFactory.storeDoc(User);

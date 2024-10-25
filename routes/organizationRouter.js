@@ -2,16 +2,19 @@ const express = require("express");
 const organizationController = require("../controllers/organizationController");
 const authController = require("../controllers/authController");
 const websiteRouter = require("./websiteRouter");
+const taskRouter = require("./taskRouter");
+const setUserIdMiddleware = require("../middlewares/setUserIdMiddleware");
 const router = express.Router();
 
 // Redirecting to Website Router
 router.use("/:organizationId/websites", websiteRouter);
+router.use("/:organizationId/tasks", taskRouter);
 
 router.use(authController.protect);
 router
   .route("/")
   .get(organizationController.indexOrganization)
-  .post(organizationController.setUserId, organizationController.storeOrganization);
+  .post(setUserIdMiddleware.setUserId, organizationController.storeOrganization);
 
 router
   .route("/:id")

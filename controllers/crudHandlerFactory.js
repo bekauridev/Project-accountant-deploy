@@ -63,6 +63,7 @@ exports.showDoc = (Model, applyFilter = (req) => ({})) =>
       },
     });
   });
+  
 // @desc  Create a new document
 exports.storeDoc = (Model) =>
   asyncMiddleware(async (req, res, next) => {
