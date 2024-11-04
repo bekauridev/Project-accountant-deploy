@@ -4,7 +4,6 @@ const asyncMiddleware = require("../middlewares/asyncMiddleware");
 const AppError = require("../utils/AppError");
 const User = require("../models/userModel");
 const ApiFeatures = require("../utils/apiFeatures");
-const { filterByLoggedInUser } = require("../utils/hepler");
 
 // @desc    Set user ID automatically during organization creation
 // @route   Middleware
@@ -25,15 +24,12 @@ const { filterByLoggedInUser } = require("../utils/hepler");
 // @desc   Retrieve a list of Organizations
 // @route  GET /api/v1/organizations/
 // @access Private
-exports.indexOrganization = crudHandlerFactory.indexDoc(
-  Organization,
-  filterByLoggedInUser
-);
+exports.indexOrganizations = crudHandlerFactory.indexDoc(Organization);
 
 // @desc   Retrieve a single Organization by ID
 // @route  GET /api/v1/organizations/:id
 // @access Private
-exports.showOrganization = crudHandlerFactory.showDoc(Organization, filterByLoggedInUser);
+exports.showOrganization = crudHandlerFactory.showDoc(Organization);
 
 // @desc   Create a Organization
 // @route  POST /api/v1/organizations/:id
@@ -43,15 +39,9 @@ exports.storeOrganization = crudHandlerFactory.storeDoc(Organization);
 // @desc   Update a Organization
 // @route  PATCH /api/v1/organizations/:id
 // @access Private
-exports.updateOrganization = crudHandlerFactory.updateDoc(
-  Organization,
-  filterByLoggedInUser
-);
+exports.updateOrganization = crudHandlerFactory.updateDoc(Organization);
 
 // @desc   Delete a Organization
 // @route  DELETE /api/v1/organizations/:id
 // @access Private
-exports.destroyOrganization = crudHandlerFactory.destroyDoc(
-  Organization,
-  filterByLoggedInUser
-);
+exports.destroyOrganization = crudHandlerFactory.destroyDoc(Organization);

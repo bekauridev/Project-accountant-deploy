@@ -11,6 +11,7 @@ const AppError = require("../utils/AppError");
 // @access Private
 exports.createWebsite = asyncMiddleware(async (req, res, next) => {
   const organizationId = req.params.organizationId;
+  const filter = req.filter || {};
 
   const newWebsite = {
     name: req.body.name,
@@ -20,8 +21,8 @@ exports.createWebsite = asyncMiddleware(async (req, res, next) => {
   };
 
   // Update the organization by pushing the new website into the embedded array
-  const updatedOrganization = await Organization.findByIdAndUpdate(
-    organizationId,
+  const updatedOrganization = await Organization.findOneAndUpdate(
+    { _id: organizationId, ...filter },
     { $push: { websites: newWebsite } },
     { new: true, runValidators: true }
   );
@@ -44,8 +45,9 @@ exports.createWebsite = asyncMiddleware(async (req, res, next) => {
 exports.updateWebsite = asyncMiddleware(async (req, res, next) => {
   const organizationId = req.params.organizationId;
   const websiteId = req.params.websiteId;
+  const filter = req.filter || {};
 
-  const organization = await Organization.findById(organizationId);
+  const organization = await Organization.findOne({ _id: organizationId, ...filter });
 
   if (!organization) {
     return next(new AppError(`No organization found with id of ${organizationId}`, 404));
@@ -76,17 +78,18 @@ exports.updateWebsite = asyncMiddleware(async (req, res, next) => {
 // @route  DELETE /api/v1/organizatiosn/organizationId/websites
 // @route  DELETE /api/v1/organizations/organizationId/websites/websiteId
 exports.deleteWebsite = asyncMiddleware(async (req, res, next) => {
-  const organizationId = req.params.organizationId;
-  const websiteId = req.params.websiteId;
+  const { organizationId, websiteId } = req.params;
+  const filter = req.filter || {};
 
-  // First, find the organization and check if websites array is empty
-  const organization = await Organization.findById(organizationId);
+  // Find the organization
+  const organization = await Organization.findOne({ _id: organizationId, ...filter });
 
   if (!organization) {
     return next(new AppError(`No organization found with id of ${organizationId}`, 404));
   }
 
-  if (organization.websites.length === 0) {
+  // Ensure the organization has websites
+  if (!organization.websites || organization.websites.length === 0) {
     return next(
       new AppError(`The websites list is already empty for this organization.`, 400)
     );
@@ -95,21 +98,22 @@ exports.deleteWebsite = asyncMiddleware(async (req, res, next) => {
   let updatedOrganization;
 
   if (websiteId) {
-    // Check if the specified website exists in the organization
-    const websiteExists = organization.websites.id(websiteId);
-
+    // Check if the website exists
+    const websiteExists = organization.websites.some(
+      (website) => website._id.toString() === websiteId
+    );
     if (!websiteExists) {
       return next(new AppError(`No website found with the provided ID`, 404));
     }
 
-    // Remove the website by its ID from the embedded array
+    // Remove the website by its ID
     updatedOrganization = await Organization.findByIdAndUpdate(
       organizationId,
       { $pull: { websites: { _id: websiteId } } },
       { new: true, runValidators: true }
     );
   } else {
-    // If no websiteId is provided, remove all websites
+    // Remove all websites if no websiteId is provided
     updatedOrganization = await Organization.findByIdAndUpdate(
       organizationId,
       { $set: { websites: [] } },

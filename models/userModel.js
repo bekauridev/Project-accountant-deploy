@@ -54,11 +54,7 @@ const userSchema = new mongoose.Schema(
         message: "Passwords do not match",
       },
     },
-    active: {
-      type: Boolean,
-      default: true,
-      select: false,
-    },
+
     isVerified: {
       type: Boolean,
       default: false,
@@ -86,13 +82,23 @@ userSchema.virtual("organizations", {
   localField: "_id",
 });
 
-// Cascade delete courses when a bootcamp is deleted
+// Cascade delete Organizations and their Tasks when a user is deleted
 userSchema.pre("findOneAndDelete", async function (next) {
   const user = await this.model.findOne(this.getQuery());
   if (user) {
-    console.log(`Organizations being Deleted at id: ${user._id}`);
+    // Step 1: Find all organizations related to this user
+    const organizations = await user.model("Organization").find({ user: user._id });
+
+    // Step 2: Collect organization IDs to delete associated tasks
+    const organizationIds = organizations.map((org) => org._id);
+
+    // Step 3: Delete all tasks associated with these organizations
+    await user.model("Task").deleteMany({ organization: { $in: organizationIds } });
+
+    // Step 4: Delete the organizations themselves
     await user.model("Organization").deleteMany({ user: user._id });
   }
+
   next();
 });
 

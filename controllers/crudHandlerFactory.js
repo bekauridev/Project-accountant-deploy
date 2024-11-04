@@ -9,12 +9,10 @@ const AppError = require("../utils/AppError");
 
 //  @desc   Retrieve a list of documents with optional filtering
 //  The function takes in the request `req` and returns a query filter object.
-exports.indexDoc = (Model, applyFilter = (req) => ({})) =>
-  asyncMiddleware(async (req, res, next) => {
-    // Apply the filter based on the logged-in user or any other condition
-    const filter = applyFilter(req); // Call the custom filter function
 
-    // Apply the filter before passing to ApiFeatures
+exports.indexDoc = (Model) =>
+  asyncMiddleware(async (req, res, next) => {
+    const filter = req.filter || {};
     const features = new ApiFeatures(Model.find(filter), req.query)
       .filter()
       .sort()
@@ -26,17 +24,15 @@ exports.indexDoc = (Model, applyFilter = (req) => ({})) =>
     res.status(200).json({
       status: "success",
       results: doc.length,
-      data: {
-        doc,
-      },
+      data: { doc },
     });
   });
 
 // @desc  This function retrieves a single document from the database by its ID, with support for optional population of related fields using the query string parameter `populate`.
-exports.showDoc = (Model, applyFilter = (req) => ({})) =>
+exports.showDoc = (Model) =>
   asyncMiddleware(async (req, res, next) => {
     // Apply the filter based on the request (e.g., logged-in user)
-    const filter = applyFilter(req);
+    const filter = req.filter || {};
 
     // Find the document by ID and apply any additional filters
     let query = Model.findOne({ _id: req.params.id, ...filter });
@@ -63,7 +59,7 @@ exports.showDoc = (Model, applyFilter = (req) => ({})) =>
       },
     });
   });
-  
+
 // @desc  Create a new document
 exports.storeDoc = (Model) =>
   asyncMiddleware(async (req, res, next) => {
@@ -78,11 +74,10 @@ exports.storeDoc = (Model) =>
   });
 
 //  @desc Update a single document by ID
-exports.updateDoc = (Model, applyFilter = (req) => ({})) =>
+exports.updateDoc = (Model) =>
   asyncMiddleware(async (req, res, next) => {
     // Apply the filter based on the request (e.g., logged-in user)
-    const filter = applyFilter(req);
-
+    const filter = req.filter || {};
     // Find the document by ID and apply the filter, then update it
     const doc = await Model.findOneAndUpdate(
       // Apply the filter and match the document by ID
@@ -107,11 +102,10 @@ exports.updateDoc = (Model, applyFilter = (req) => ({})) =>
   });
 
 //  @desc   Delete a single document by ID
-exports.destroyDoc = (Model, applyFilter = (req) => ({})) =>
+exports.destroyDoc = (Model) =>
   asyncMiddleware(async (req, res, next) => {
     // Apply the filter based on the request (e.g., logged-in user)
-    const filter = applyFilter(req);
-
+    const filter = req.filter || {};
     // Find the document by ID and apply the filter, then delete it
     const doc = await Model.findOneAndDelete({ _id: req.params.id, ...filter });
 

@@ -14,7 +14,7 @@ const organizationSchema = new mongoose.Schema(
     contact: {
       type: String,
     },
-    message: { type: String },
+    note: { type: String },
 
     websites: [
       {
@@ -49,9 +49,6 @@ const organizationSchema = new mongoose.Schema(
         },
       },
     ],
-
-    // tasks: {}, // parent refrencing to tasks
-
     user: {
       type: mongoose.Schema.ObjectId,
       ref: "User",
@@ -61,6 +58,22 @@ const organizationSchema = new mongoose.Schema(
 
   { toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );
+
+// Virtual populate
+organizationSchema.virtual("tasks", {
+  ref: "Task",
+  foreignField: "organization",
+  localField: "_id",
+});
+// Cascade delete Tasks when an organization is deleted
+organizationSchema.pre("findOneAndDelete", async function (next) {
+  const organization = await this.model.findOne(this.getQuery());
+  if (organization) {
+    // Delete all tasks associated with this organization
+    await organization.model("Task").deleteMany({ organization: organization._id });
+  }
+  next();
+});
 
 const Organization = mongoose.model("Organization", organizationSchema);
 module.exports = Organization;

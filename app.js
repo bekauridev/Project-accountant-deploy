@@ -1,7 +1,7 @@
 const express = require("express");
 const morgan = require("morgan");
-// const cors = require("cors");
-
+const cors = require("cors");
+const cookieParser = require("cookie-parser");
 const globalErrorHandler = require("./controllers/errorController");
 const AppError = require("./utils/AppError");
 
@@ -12,7 +12,13 @@ const authRouter = require("./routes/authRouter");
 
 // initialize app
 const app = express();
-// app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:5173", // Allow your frontend domain
+    methods: ["GET", "POST", "PATCH"], // Allow specific methods
+    credentials: true, // Allow cookies
+  })
+);
 // Development logging
 if (process.env.NODE_ENV === "development") app.use(morgan("dev"));
 
@@ -36,6 +42,7 @@ if (process.env.NODE_ENV === "development") app.use(morgan("dev"));
 
 // Body parser, reading data from body into req.body
 app.use(express.json({ limit: "100kb" }));
+app.use(cookieParser()); // To parse cookies
 
 // Routes
 app.use("/api/v1/users", usersRouter);

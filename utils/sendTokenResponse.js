@@ -4,7 +4,7 @@ const sendTokenResponse = (user, statusCode, res) => {
 
   const cookieOptions = {
     maxAge: +process.env.JWT_COOKIE_EXPIRESIN_IN * 24 * 60 * 60 * 1000,
-    httpOnly: true,
+    // httpOnly: true,
   };
 
   if (process.env.NODE_ENV === "production") cookieOptions.secure = true;
@@ -13,7 +13,6 @@ const sendTokenResponse = (user, statusCode, res) => {
 
   user.role = undefined;
   user.password = undefined;
-  user.active = undefined;
   user.__v = undefined;
 
   res.status(statusCode).json({

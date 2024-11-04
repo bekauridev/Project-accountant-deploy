@@ -63,7 +63,7 @@ exports.updateMe = asyncMiddleware(async (req, res, next) => {
 // @desc   Retrieve a list of users
 // @route  GET /api/v1/users/
 // @access Admin access only
-exports.indexUser = crudHandlerFactory.indexDoc(User);
+exports.indexUsers = crudHandlerFactory.indexDoc(User);
 
 // @desc   Retrieve a single user by ID
 // @route  GET /api/v1/users/:id

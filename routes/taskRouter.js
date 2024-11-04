@@ -2,15 +2,24 @@ const express = require("express");
 const authController = require("../controllers/authController");
 const taskController = require("../controllers/taskController");
 const setUserIdMiddleware = require("../middlewares/setUserIdMiddleware");
+const setOrganizationMiddleware = require("../middlewares/setOrganizationMiddleware");
+const { setUserFilter } = require("../middlewares/filterByUser");
+const exportTasksToExcel = require("../utils/exportTasksToExcel");
 const router = express.Router({ mergeParams: true });
 
 router.use(authController.protect);
-
-router.route("/").get(taskController.indexTask).post(
-  // setUserIdMiddleware.setUserId,
-  taskController.setOrganizationAndUserId,
+router.post(
+  "/",
+  setUserIdMiddleware.setUserId,
+  setOrganizationMiddleware.setOrganizationId,
   taskController.storeTask
 );
+
+router.get("/export-tasks", exportTasksToExcel);
+
+router.use(setUserFilter);
+
+router.route("/").get(taskController.indexTasks);
 
 router
   .route("/:id")

@@ -68,6 +68,20 @@ exports.login = asyncMiddleware(async (req, res, next) => {
   sendTokenResponse(user, 201, res);
 });
 
+// controllers/authController.js
+
+exports.logout = asyncMiddleware(async (req, res, next) => {
+  // Clear the jwt cookie
+  res.cookie("jwt", "", {
+    httpOnly: true, // Prevent client-side JS from accessing the cookie
+    secure: true, // Use HTTPS in production
+    sameSite: "Strict", // Helps with CSRF attacks
+    expires: new Date(0), // Immediately expire the cookie
+  });
+
+  res.status(200).json({ status: "success", message: "Logged out successfully." });
+});
+
 // @desc   Protect routes
 // @route  Protect middleware
 exports.protect = asyncMiddleware(async (req, res, next) => {

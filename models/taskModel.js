@@ -14,14 +14,15 @@ const taskSchema = new mongoose.Schema(
       required: true,
       enum: ["monthly", "yearli"],
     },
-    targetMonth: {
+    // ! (EXPLAIN LATER)
+    targetPeriod: {
       type: String,
-      required: [true, "Please select target month"],
+      required: [true, "Please select the target period for which the task is intended"],
     },
     status: {
       type: String,
-      enum: ["Progress", "Completed"],
-      default: "Progress",
+      enum: ["progress", "completed"],
+      default: "progress",
       required: true,
     },
     startDate: {
@@ -47,7 +48,6 @@ const taskSchema = new mongoose.Schema(
   },
   { toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );
-
 const Task = mongoose.model("Task", taskSchema);
 
 module.exports = Task;

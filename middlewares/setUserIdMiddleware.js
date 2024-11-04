@@ -2,8 +2,8 @@ const User = require("../models/userModel");
 const AppError = require("../utils/AppError");
 const asyncMiddleware = require("./asyncMiddleware");
 
-// @desc    Set Logged in user ID automatically in doccument
-// @route   Middleware
+// @desc  Set Logged in user ID automatically in doccument (req.body)
+// @route Middleware
 exports.setUserId = asyncMiddleware(async (req, res, next) => {
   if (!req.body.user) req.body.user = req.user.id;
 

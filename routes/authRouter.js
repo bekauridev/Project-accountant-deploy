@@ -10,13 +10,12 @@ router.post("/forgotPassword", authController.forgotPassword);
 router.patch("/resetPassword/:token", authController.resetPassword);
 
 router.use(authController.protect);
+router.get("/logout", authController.logout);
+
 router.patch("/updatePassword/:id", authController.updatePassword);
 
 // Validation related
-router.post(
-  "/send-verification-code",
-  verificationController.sendVerificationCodeHandler
-);
+router.get("/send-verification-code", verificationController.sendVerificationCodeHandler);
 router.post("/verification", verificationController.verification);
 
 module.exports = router;

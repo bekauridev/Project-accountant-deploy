@@ -1,0 +1,62 @@
+[
+  {
+    "_id": "8728afb9d5c0f7bcc8706b40",
+    "title": "მარტის დეკლარაციები",
+    "description": "დეკლარაციების მომზადება მარტის თვისთვის",
+    "recurrence": "monthly",
+    "targetPeriod": "March",
+    "status": "completed",
+    "startDate": "2023-03-01T00:00:00Z",
+    "deadline": "2023-03-10T00:00:00Z",
+    "user": "672604be625a3256c5f46ba4",
+    "organization": "6727afb9d5c0f7bcc8705b42"
+  },
+  {
+    "_id": "8728afb9d5c0f7bcc8706b41",
+    "title": "წლის ფინანსური რეპორტი",
+    "description": "წლის ფინანსური რეპორტის მომზადება",
+    "recurrence": "yearli",
+    "targetPeriod": "2023",
+    "status": "progress",
+    "startDate": "2023-01-01T00:00:00Z",
+    "deadline": "2023-12-31T00:00:00Z",
+    "user": "672604be625a3256c5f46ba4",
+    "organization": "6727afb9d5c0f7bcc8705b4a"
+  },
+  {
+    "_id": "8728afb9d5c0f7bcc8706b42",
+    "title": "აპრილის დეკლარაციები",
+    "description": "აპრილის თვის დეკლარაციების მომზადება",
+    "recurrence": "monthly",
+    "targetPeriod": "April",
+    "status": "progress",
+    "startDate": "2023-04-01T00:00:00Z",
+    "deadline": "2023-04-10T00:00:00Z",
+    "user": "672604be625a3256c5f46ba4",
+    "organization": "6727afb9d5c0f7bcc8705b4c"
+  },
+  {
+    "_id": "8728afb9d5c0f7bcc8706b43",
+    "title": "კვარტალური აუდიტი",
+    "description": "2023 წლის კვარტალური აუდიტის ჩატარება",
+    "recurrence": "yearli",
+    "targetPeriod": "Q2",
+    "status": "progress",
+    "startDate": "2023-04-01T00:00:00Z",
+    "deadline": "2023-06-30T00:00:00Z",
+    "user": "672604be625a3256c5f46ba4",
+    "organization": "6727afb9d5c0f7bcc8705b45"
+  },
+  {
+    "_id": "8728afb9d5c0f7bcc8706b44",
+    "title": "ივნისის დეკლარაციები",
+    "description": "დეკლარაციების მომზადება ივნისის თვისთვის",
+    "recurrence": "monthly",
+    "targetPeriod": "June",
+    "status": "completed",
+    "startDate": "2023-06-01T00:00:00Z",
+    "deadline": "2023-06-10T00:00:00Z",
+    "user": "672604be625a3256c5f46ba4",
+    "organization": "6727afb9d5c0f7bcc8705b47"
+  }
+]

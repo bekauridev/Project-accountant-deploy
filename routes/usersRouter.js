@@ -22,7 +22,7 @@ router.use(authController.checkRole("admin"));
 // Admin routes for user management
 router
   .route("/")
-  .get(usersController.indexUser) // Retrieve all users
+  .get(usersController.indexUsers) // Retrieve all users
   .post(usersController.storeUser); // Create a new user
 
 router

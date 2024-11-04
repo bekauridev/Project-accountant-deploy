@@ -3,6 +3,7 @@ const organizationController = require("../controllers/organizationController");
 const authController = require("../controllers/authController");
 const websiteRouter = require("./websiteRouter");
 const taskRouter = require("./taskRouter");
+const { setUserFilter } = require("../middlewares/filterByUser");
 const setUserIdMiddleware = require("../middlewares/setUserIdMiddleware");
 const router = express.Router();
 
@@ -11,11 +12,12 @@ router.use("/:organizationId/websites", websiteRouter);
 router.use("/:organizationId/tasks", taskRouter);
 
 router.use(authController.protect);
-router
-  .route("/")
-  .get(organizationController.indexOrganization)
-  .post(setUserIdMiddleware.setUserId, organizationController.storeOrganization);
 
+router.post("/", setUserIdMiddleware.setUserId, organizationController.storeOrganization);
+
+router.use(setUserFilter);
+
+router.get("/", organizationController.indexOrganizations);
 router
   .route("/:id")
   .get(organizationController.showOrganization) // Retrieve a specific doc by ID
