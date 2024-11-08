@@ -12,11 +12,11 @@ const taskSchema = new mongoose.Schema(
     recurrence: {
       type: String,
       required: true,
-      enum: ["monthly", "yearli"],
+      enum: ["monthly", "yearly"],
     },
     // ! (EXPLAIN LATER)
     targetPeriod: {
-      type: String,
+      type: Date,
       required: [true, "Please select the target period for which the task is intended"],
     },
     status: {
@@ -33,7 +33,10 @@ const taskSchema = new mongoose.Schema(
       type: Date,
       required: [true, "Task must have deadline date"],
     },
-
+    archived: {
+      type: Boolean,
+      default: false,
+    },
     user: {
       type: mongoose.Schema.ObjectId,
       ref: "User",

@@ -15,7 +15,7 @@ router.post(
   taskController.storeTask
 );
 
-router.get("/export-tasks", exportTasksToExcel);
+router.post("/export-tasks", exportTasksToExcel);
 
 router.use(setUserFilter);
 
