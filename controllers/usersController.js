@@ -2,22 +2,7 @@ const User = require("../models/userModel");
 const asyncMiddleware = require("../middlewares/asyncMiddleware");
 const AppError = require("../utils/AppError");
 const crudHandlerFactory = require("./crudHandlerFactory");
-const filterFieldsObj = require("../utils/filterFieldsObj");
-
-// @desc   Reject password update
-// @route  Protect middleware
-exports.declinePasswordUpdate = asyncMiddleware(async (req, res, next) => {
-  if (req.body.password || req.body.passwordConfirm) {
-    return next(
-      new AppError(
-        `This route is not for password updates. Please use ${req.protocol}://${req.get(
-          "host"
-        )}/api/v1/auth/updatePassword for password updates or /forgotPassword if you forgot your password.`,
-        400
-      )
-    );
-  }
-});
+const { filterFieldsObj } = require("../utils/hepler");
 
 // @desc   Delete Currently logged in user's details
 // @route  DELETE /api/v1/users/updateMe
@@ -37,13 +22,16 @@ exports.deleteMe = asyncMiddleware(async (req, res, next) => {
 exports.updateMe = asyncMiddleware(async (req, res, next) => {
   // Accept only allowed fields
   const fields = filterFieldsObj(req.body, "name", "email");
+
   // Check if the provided email is the same as the current email
-  if (req.body.email) {
-    // !! TO DO You Need to add 2 step authentication for email before update
-    if (req.user.email === req.body.email)
+  if (fields.email) {
+    if (req.user.email === fields.email) {
       return next(
         new AppError("The email you provided is already your current email address", 400)
       );
+    }
+    // Set isVerified to false if the email is changed
+    fields.isVerified = false;
   }
 
   const updatedUser = await User.findByIdAndUpdate(req.user.id, fields, {
