@@ -4,8 +4,6 @@ const AppError = require("../utils/AppError");
 
 // Common Parameters Description
 //  @param   {Model} Model - The Mongoose model representing the collection.
-//  @param   {Function} [applyFilter = (req) => ({})] - Optional filter function. Defaults to an empty filter.
-// It adds an additional filtering layer, useful for scenarios like filtering documents based on relationships (e.g., filtering by the logged-in user or related entities).
 
 //  @desc   Retrieve a list of documents with optional filtering
 //  The function takes in the request `req` and returns a query filter object.

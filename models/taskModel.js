@@ -14,7 +14,7 @@ const taskSchema = new mongoose.Schema(
       required: true,
       enum: ["monthly", "yearly"],
     },
-    // ! (EXPLAIN LATER)
+    // The time period for which the task is intended
     targetPeriod: {
       type: Date,
       required: [true, "Please select the target period for which the task is intended"],
@@ -37,6 +37,14 @@ const taskSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    notifiedOneDayBefore: {
+      type: Boolean,
+      default: false,
+    },
+    notifiedFiveDaysBefore: {
+      type: Boolean,
+      default: false,
+    },
     user: {
       type: mongoose.Schema.ObjectId,
       ref: "User",
@@ -51,6 +59,17 @@ const taskSchema = new mongoose.Schema(
   },
   { toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );
+taskSchema.index({ deadline: 1, archived: 1, status: 1 });
+
+taskSchema.pre("findOneAndUpdate", function (next) {
+  // Access currently updated document
+  const updatedTask = this.getUpdate();
+
+  if (updatedTask.status === "completed") {
+    updatedTask.archived = true;
+  }
+  next();
+});
 const Task = mongoose.model("Task", taskSchema);
 
 module.exports = Task;

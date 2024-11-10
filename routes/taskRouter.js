@@ -4,7 +4,7 @@ const taskController = require("../controllers/taskController");
 const setUserIdMiddleware = require("../middlewares/setUserIdMiddleware");
 const setOrganizationMiddleware = require("../middlewares/setOrganizationMiddleware");
 const { setUserFilter } = require("../middlewares/filterByUser");
-const exportTasksToExcel = require("../services/exportTasksToExcel");
+const exportTasksToExcel = require("../services/exportTasksToExcelService");
 const router = express.Router({ mergeParams: true });
 
 router.use(authController.protect);

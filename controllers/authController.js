@@ -11,8 +11,6 @@ const hashToken = require("../utils/hashToken");
 // @route  POST /api/v1/auth/signup
 // @access Public
 exports.signup = asyncMiddleware(async (req, res, next) => {
-  // !! TO DO - თუ მომხმარებელმა თავისი თავი წაშალა და შემდგომ ისევ ცადა დარეგისტრირება მაგ თემთხვევას მიხედეე თუ ჯონასმა არ გასწავლა :D
-
   // Validate Input
   let userObj = {
     name: req.body.name,
@@ -120,9 +118,9 @@ exports.protect = asyncMiddleware(async (req, res, next) => {
   }
 
   //!!  (TEMP CLOSED) Check if user is verified
-  // if (!user.isVerified) {
-  //   return next(new AppError("Forbidden: User is not verified.", 403));
-  // }
+  if (!user.isVerified) {
+    return next(new AppError("Forbidden: User is not verified.", 403));
+  }
 
   req.user = user;
   next();

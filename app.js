@@ -10,6 +10,7 @@ const organizationRouter = require("./routes/organizationRouter");
 const taskRouter = require("./routes/taskRouter");
 const authRouter = require("./routes/authRouter");
 
+require("./services/taskReminderService");
 // initialize app
 const app = express();
 app.use(
@@ -49,6 +50,8 @@ app.use("/api/v1/users", usersRouter);
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/organizations", organizationRouter);
 app.use("/api/v1/tasks", taskRouter);
+
+// Call the task reminder function to start checking tasks deadlines
 
 app.all("*", (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
