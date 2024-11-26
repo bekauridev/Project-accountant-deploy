@@ -117,7 +117,6 @@ exports.protect = asyncMiddleware(async (req, res, next) => {
     return next(new AppError("Your password has been changed. Please log in again", 401));
   }
 
-  //!!  (TEMP CLOSED) Check if user is verified
   if (!user.isVerified) {
     return next(new AppError("Forbidden: User is not verified.", 403));
   }
@@ -191,7 +190,7 @@ exports.resetPassword = asyncMiddleware(async (req, res, next) => {
     passwordResetExpires: { $gt: Date.now() },
   });
 
-  if (!user) return next(new AppError("Token is invalid or expired", 400));
+  if (!user) return next(new AppError("Token is invalid or has expired", 400));
 
   // Update Password
   user.password = req.body.password;
@@ -213,7 +212,7 @@ exports.resetPassword = asyncMiddleware(async (req, res, next) => {
 });
 
 // @desc   Update user password
-// @route  PATCH /api/v1/auth/updatePassword/:id
+// @route  PATCH /api/v1/auth/updatePassword
 // @access Private
 exports.updatePassword = asyncMiddleware(async (req, res, next) => {
   const { currentPassword, password, passwordConfirm } = req.body;
@@ -225,7 +224,7 @@ exports.updatePassword = asyncMiddleware(async (req, res, next) => {
     );
   }
   // Find User
-  const user = await User.findById(req.params.id).select("+password");
+  const user = await User.findById(req.user.id).select("+password");
 
   // Verify Current Password
   if (!(await user.matchHashedField(currentPassword, user.password))) {

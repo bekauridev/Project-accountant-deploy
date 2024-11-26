@@ -1,16 +1,7 @@
-// working with dates
-const dayjs = require("dayjs");
-const localizedFormat = require("dayjs/plugin/localizedFormat");
-const georgianLocale = require("dayjs/locale/ka");
-
 const excelJs = require("exceljs");
 const Task = require("../models/taskModel");
 const asyncMiddleware = require("../middlewares/asyncMiddleware");
 const AppError = require("../utils/AppError");
-
-// Initialize Dayjs
-dayjs.extend(localizedFormat); // Extend dayjs functionality
-dayjs.locale("ka"); // Set to Georgian
 
 // @desc   convert JSON data to Excel format
 // @route  POST /api/v1/tasks/export-tasks
@@ -18,6 +9,10 @@ dayjs.locale("ka"); // Set to Georgian
 const convertJsonToExcel = asyncMiddleware(async (req, res, next) => {
   const user = req.user;
   const filters = req.body;
+
+  if (!filters) {
+    return next(new AppError("Missing required fields", 400));
+  }
 
   // Work tipe title translation
   const workType =
@@ -90,6 +85,10 @@ const convertJsonToExcel = asyncMiddleware(async (req, res, next) => {
     "Content-Disposition",
     `attachment; filename="${filters.documentName || "work_excel"}.xlsx"`
   );
+  // res.setHeader(
+  //   "Content-Disposition",
+  //   `attachment; filename="${filters.documentName || "work_excel"}.xlsx"`
+  // );
 
   // Write the workbook to response and end the response
   await workbook.xlsx.write(res);
@@ -137,8 +136,8 @@ const generateRowData = (org, index) => {
 
 // Display title at the top of the document
 const displayTitle = (workType, filters, sheet) => {
-  const date = dayjs(filters?.targetPeriod);
-  const targetPeriod = date.format("MMMM,YYYY");
+  const date = new Date(filters?.targetPeriod);
+  const targetPeriod = date.toLocaleString("ka-ge", { month: "long", year: "numeric" });
   const titleText = `${workType} / ${targetPeriod}`;
 
   sheet.insertRow(1, { orgName: titleText });

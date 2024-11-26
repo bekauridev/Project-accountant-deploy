@@ -23,17 +23,6 @@ exports.updateMe = asyncMiddleware(async (req, res, next) => {
   // Accept only allowed fields
   const fields = filterFieldsObj(req.body, "name", "email");
 
-  // Check if the provided email is the same as the current email
-  if (fields.email) {
-    if (req.user.email === fields.email) {
-      return next(
-        new AppError("The email you provided is already your current email address", 400)
-      );
-    }
-    // Set isVerified to false if the email is changed
-    fields.isVerified = false;
-  }
-
   const updatedUser = await User.findByIdAndUpdate(req.user.id, fields, {
     new: true,
     runValidators: true,

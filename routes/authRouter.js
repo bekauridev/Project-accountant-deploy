@@ -12,7 +12,7 @@ router.patch("/resetPassword/:token", authController.resetPassword);
 router.use(authController.protect);
 router.get("/logout", authController.logout);
 
-router.patch("/updatePassword/:id", authController.updatePassword);
+router.patch("/updatePassword", authController.updatePassword);
 
 // Validation related
 router.get("/send-verification-code", verificationController.sendVerificationCodeHandler);

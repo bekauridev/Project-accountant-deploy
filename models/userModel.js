@@ -82,6 +82,15 @@ userSchema.virtual("organizations", {
   localField: "_id",
 });
 
+// Reset verification status when the email changes
+userSchema.pre("findOneAndUpdate", function (next) {
+  const update = this.getUpdate();
+
+  if (update.email) update.isVerified = false;
+
+  next();
+});
+
 // Cascade delete Organizations and their Tasks when a user is deleted
 userSchema.pre("findOneAndDelete", async function (next) {
   const user = await this.model.findOne(this.getQuery());
@@ -117,17 +126,16 @@ userSchema.pre("save", async function (next) {
   // Only run this function if password was actually modified
   if (!this.isModified("password")) return next();
 
-  // ! (TEMP CLOSED) Check password Strength
-  // const passwordStrength = zxcvbn(this.password);
-  // if (passwordStrength.score < 4) {
-  //   const { warning, suggestions } = passwordStrength.feedback;
-  //   // Build error message
-  //   let errorMsg = "Weak password!";
-  //   if (warning) errorMsg += ` ${warning}`;
-  //   if (suggestions) errorMsg += `  ${suggestions.join(" ")}`;
+  const passwordStrength = zxcvbn(this.password);
+  if (passwordStrength.score < 4) {
+    const { warning, suggestions } = passwordStrength.feedback;
+    // Build error message
+    let errorMsg = "Weak password!";
+    if (warning) errorMsg += ` ${warning}`;
+    if (suggestions) errorMsg += `  ${suggestions.join(" ")}`;
 
-  //   return next(new AppError(errorMsg, 400));
-  // }
+    return next(new AppError(errorMsg, 400));
+  }
 
   // Hash pass
   const salt = await bcrypt.genSalt(12);
@@ -172,7 +180,6 @@ userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
 userSchema.methods.getPasswordResetToken = function () {
   const resetToken = crypto.randomBytes(32).toString("hex");
   this.passwordResetToken = hashToken(resetToken);
-  console.log({ resetToken }, this.passwordResetToken);
   this.passwordResetExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
 
   return resetToken;
