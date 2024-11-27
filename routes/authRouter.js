@@ -15,7 +15,7 @@ router.get("/logout", authController.logout);
 router.patch("/updatePassword", authController.updatePassword);
 
 // Validation related
-router.get("/send-verification-code", verificationController.sendVerificationCodeHandler);
-router.post("/verification", verificationController.verification);
+// router.get("/send-verification-code", verificationController.sendVerificationCodeHandler);
+// router.post("/verification", verificationController.verification);
 
 module.exports = router;
