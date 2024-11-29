@@ -83,6 +83,7 @@ exports.logout = asyncMiddleware(async (req, res, next) => {
 // @desc   Protect routes
 // @route  Protect middleware
 exports.protect = asyncMiddleware(async (req, res, next) => {
+  console.log(`protect func runs`);
   // Check if token exists
   let token;
 
