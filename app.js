@@ -70,7 +70,6 @@ app.use(mongoSanitize());
 app.use(xss());
 
 // Define API routes
-// app.use("/", (req, res) => res.send("Hello from the server!"));
 app.use("/api/v1/users", usersRouter);
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/organizations", organizationRouter);
